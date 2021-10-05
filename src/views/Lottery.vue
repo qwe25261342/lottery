@@ -16,28 +16,51 @@
         <h1>{{ nowDay }}</h1>
         <h1>{{ nowTime }}</h1>
       </div>
-      <form>
+      <el-form>
         <div class="row mb-3">
           <div class="col">
-            <input v-model="ball.n1" type="number" class="form-control" />
+            <el-input
+              v-model="ball.n1"
+              type="number"
+              class="form-control"
+            />
+              <!-- max="30"
+              min="1"
+             @input="numberChange(arguments[0], 30)" -->
           </div>
           <div class="col">
-            <input v-model="ball.n2" type="number" class="form-control" />
+            <el-input
+              v-model="ball.n2"
+              type="number"
+              class="form-control"
+            />
           </div>
           <div class="col">
-            <input v-model="ball.n3" type="number" class="form-control" />
+            <el-input
+              v-model="ball.n3"
+              type="number"
+              class="form-control"
+            />
           </div>
           <div class="col">
-            <input v-model="ball.n4" type="number" class="form-control" />
+            <el-input
+              v-model="ball.n4"
+              type="number"
+              class="form-control"
+            />
           </div>
           <div class="col">
-            <input v-model="ball.n5" type="number" class="form-control" />
+            <el-input
+              v-model="ball.n5"
+              type="number"
+              class="form-control"
+            />
           </div>
           <button type="submit" class="btn btn-primary" @click="send">
             購買
           </button>
         </div>
-      </form>
+      </el-form>
 
       <div class="lottery_record">
         <h2>開獎紀錄</h2>
@@ -89,8 +112,17 @@ export default {
   },
   methods: {
     send() {
-      // const { n1,n2,n3,n4,n5 } = this.ball
-      // const settle = { n1,n2,n3,n4,n5 }
+      const { n1,n2,n3,n4,n5 } = this.ball
+      const params = { n1,n2,n3,n4,n5, token: localStorage.getItem("token"), }
+
+      if(params == ""){
+        return;
+      }
+      axios
+      .post( appApi + "/setball" ,{params})
+      .then((res) =>{
+        console.log(res);
+      })
     },
 
     // 得到當下時間
@@ -126,6 +158,18 @@ export default {
         self.timeFormate(new Date());
       }, 1000);
     },
+    //
+    // numberChange(val, maxNum) {
+    //   this.ball.n1 = Number(val);
+    //   this.$nextTick(() => {
+    //     let num = Math.min(Number(val), maxNum);
+    //     if (num < 0) {
+    //       this.ball.n1 = 0;
+    //     } else {
+    //       this.ball.n1 = num;
+    //     }
+    //   });
+    // },
   },
 
   // 創建完成時
@@ -140,10 +184,10 @@ export default {
     };
 
     //取得會員資料
-    axios.post( appApi + "/getuser", { params }).then((res) => {
+    axios.post(appApi + "/getuser", { params }).then((res) => {
       console.log(res.data);
-      this.nickname = res.data[0].nickname
-      this.balance = res.data[0].balance
+      this.nickname = res.data[0].nickname;
+      this.balance = res.data[0].balance;
     });
   },
 };
@@ -151,5 +195,8 @@ export default {
 <style>
 .record_table {
   width: 100%;
+}
+.col .el-input{
+  display: contents;
 }
 </style>

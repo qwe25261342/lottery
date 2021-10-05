@@ -7,15 +7,15 @@
           <li><a href="/lottery">彩票</a></li>
           <li><a href="/record">購買紀錄</a></li>
           <div class="userbox">
-              <li>會員</li>
-            <li>剩餘點數:</li>
+            <li>會員:{{ nickname }}</li>
+            <li>剩餘點數:{{ balance }}</li>
           </div>
         </ul>
       </nav>
       <div onload="ShowTime">
         <h2>{{ nowDay }} {{ nowTime }}</h2>
       </div>
-     <h2>購買紀錄</h2>
+      <h2>購買紀錄</h2>
       <table class="record_table" border="2">
         <tr>
           <th>期</th>
@@ -27,15 +27,15 @@
           <th>開獎</th>
           <th>中獎金額</th>
         </tr>
-        <tr>
-          <td>N</td>
-          <td>cell 2</td>
-          <td>cell 2</td>
-          <td>cell 2</td>
-          <td>cell 2</td>
-          <td>cell 2</td>
-          <td>0</td>
-          <td>0</td>
+        <tr v-for="item in record" :key="item.id">
+          <td>{{ item.issue }}</td>
+          <td>{{ item.settle_n1 }}</td>
+          <td>{{ item.settle_n2 }}</td>
+          <td>{{ item.settle_n3 }}</td>
+          <td>{{ item.settle_n4 }}</td>
+          <td>{{ item.settle_n5 }}</td>
+          <td>{{ item.status }}</td>
+          <td>{{ item.gain_amount }}</td>
         </tr>
       </table>
     </div>
@@ -43,26 +43,20 @@
 </template>
 
 <script>
+import axios from "axios";
+import url from "../router/url";
+const appApi = url.api;
 export default {
   data() {
     return {
       nowDay: "",
       nowTime: "",
-      ball: {
-        n1: "",
-        n2: "",
-        n3: "",
-        n4: "",
-        n5: "",
-      },
+      record: [],
+      nickname: "",
+      balance: "",
     };
   },
   methods: {
-    send() {
-      // const { n1,n2,n3,n4,n5 } = this.ball
-      // const settle = { n1,n2,n3,n4,n5 }
-    },
-
     // 得到當下時間
     timeFormate(timeStamp) {
       let newdate = new Date(timeStamp);
@@ -104,6 +98,19 @@ export default {
   // 掛載完成時
   mounted() {
     this.nowTimes();
+
+    const params = { token: localStorage.getItem("token") };
+    //取得歷史紀錄
+    axios.post(appApi + "/history", { params }).then((res) => {
+      this.record = res.data;
+      console.log(this.record);
+    });
+    //取得會員資料
+    axios.post(appApi + "/getuser", { params }).then((res) => {
+      console.log(res.data);
+      this.nickname = res.data[0].nickname;
+      this.balance = res.data[0].balance;
+    });
   },
 };
 </script>
