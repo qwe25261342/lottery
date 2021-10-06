@@ -74,13 +74,13 @@
             <th>第4球</th>
             <th>第5球</th>
           </tr>
-          <tr>
-            <td>N</td>
-            <td>cell 2</td>
-            <td>cell 2</td>
-            <td>cell 2</td>
-            <td>cell 2</td>
-            <td>cell 2</td>
+          <tr v-for="item in ball" :key="item.issue">
+            <td>{{ item.issue }}</td>
+            <td>{{ item.n1 }}</td>
+            <td>{{ item.n2 }}</td>
+            <td>{{ item.n3 }}</td>
+            <td>{{ item.n4 }}</td>
+            <td>{{ item.n5 }}</td>
           </tr>
         </table>
       </div>
@@ -97,15 +97,7 @@ export default {
     return {
       nowDay: "",
       nowTime: "",
-      ball: [
-        {
-          n1: "",
-          n2: "",
-          n3: "",
-          n4: "",
-          n5: "",
-        },
-      ],
+      ball: [],
       nickname: "",
       balance: "",
     };
@@ -185,9 +177,13 @@ export default {
 
     //取得會員資料
     axios.post(appApi + "/getuser", { params }).then((res) => {
-      console.log(res.data);
+      //console.log(res.data);
       this.nickname = res.data[0].nickname;
       this.balance = res.data[0].balance;
+    });
+    axios.post(appApi + "/status" ).then((res) => {
+      this.ball =res.data
+      console.log(this.ball);
     });
   },
 };
