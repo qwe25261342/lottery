@@ -105,13 +105,14 @@ export default {
   methods: {
     send() {
       const { n1,n2,n3,n4,n5 } = this.ball
-      const params = { n1,n2,n3,n4,n5, token: localStorage.getItem("token"), }
-
+      const token = localStorage.getItem("token")
+      const params = { n1, n2, n3, n4, n5, token }
       if(params == ""){
+        console.log("132231");
         return;
       }
       axios
-      .post( appApi + "/setball" ,{params})
+      .post( appApi + "/setball" ,{ params })
       .then((res) =>{
         console.log(res);
       })
@@ -177,7 +178,7 @@ export default {
 
     //取得會員資料
     axios.post(appApi + "/getuser", { params }).then((res) => {
-      //console.log(res.data);
+      console.log(res.data);
       this.nickname = res.data[0].nickname;
       this.balance = res.data[0].balance;
     });
