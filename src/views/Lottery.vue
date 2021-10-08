@@ -13,24 +13,24 @@
         </ul>
       </nav>
       <div onload="ShowTime">
-        <h1>{{ nowDay }}</h1>
-        <h1>{{ nowTime }}</h1>
+        <h3>{{ nowDay }}</h3>
+        <h3>{{ nowTime }}</h3>
+        <h1>本期 : {{ issue }}</h1>
       </div>
       <el-form>
         <div class="row mb-3">
           <div class="col">
             <el-input
               v-model="ball.n1"
+              v-on:input="max"
               type="number"
               class="form-control"
             />
-              <!-- max="30"
-              min="1"
-             @input="numberChange(arguments[0], 30)" -->
           </div>
           <div class="col">
             <el-input
               v-model="ball.n2"
+              v-on:input="max"
               type="number"
               class="form-control"
             />
@@ -38,6 +38,7 @@
           <div class="col">
             <el-input
               v-model="ball.n3"
+              v-on:input="max"
               type="number"
               class="form-control"
             />
@@ -45,6 +46,7 @@
           <div class="col">
             <el-input
               v-model="ball.n4"
+              v-on:input="max"
               type="number"
               class="form-control"
             />
@@ -52,6 +54,7 @@
           <div class="col">
             <el-input
               v-model="ball.n5"
+              v-on:input="max"
               type="number"
               class="form-control"
             />
@@ -92,6 +95,9 @@
 import axios from "axios";
 import url from "../router/url";
 const appApi = url.api;
+import io from "socket.io-client";
+var socket = io(appApi);
+
 export default {
   data() {
     return {
@@ -100,22 +106,24 @@ export default {
       ball: [],
       nickname: "",
       balance: "",
+      issue: "",
     };
   },
   methods: {
     send() {
-      const { n1,n2,n3,n4,n5 } = this.ball
-      const token = localStorage.getItem("token")
-      const params = { n1, n2, n3, n4, n5, token }
-      if(params == ""){
-        console.log("132231");
+      const { n1, n2, n3, n4, n5 } = this.ball;
+      const token = localStorage.getItem("token");
+      const params = { n1, n2, n3, n4, n5, token };
+      if (params == "") {
         return;
       }
-      axios
-      .post( appApi + "/setball" ,{ params })
-      .then((res) =>{
-        console.log(res);
-      })
+      axios.post(appApi + "/setball", { params }).then((res) => {
+        if (res.data.closing) {
+          alert("關盤中");
+        } else {
+          alert("購買成功");
+        }
+      });
     },
 
     // 得到當下時間
@@ -139,7 +147,6 @@ export default {
         newdate.getSeconds() < 10
           ? "0" + newdate.getSeconds()
           : newdate.getSeconds();
-
       this.nowTime = hh + ":" + mm + ":" + ss;
       this.nowDay = year + "年" + month + "月" + date + "日";
     },
@@ -151,23 +158,35 @@ export default {
         self.timeFormate(new Date());
       }, 1000);
     },
-    //
-    // numberChange(val, maxNum) {
-    //   this.ball.n1 = Number(val);
-    //   this.$nextTick(() => {
-    //     let num = Math.min(Number(val), maxNum);
-    //     if (num < 0) {
-    //       this.ball.n1 = 0;
-    //     } else {
-    //       this.ball.n1 = num;
-    //     }
-    //   });
-    // },
+    //限制輸入框最大與最小值
+    max() {
+      let value = this.ball.n1;
+
+      if (value.length > 2) {
+        this.ball.n1 = value.slice(0, 2);
+        console.log(value);
+      }
+      if (value < 0) {
+        console.log(value);
+        this.ball.n1 = 0;
+      }
+      if (value > 30) {
+        alert("最大30");
+        this.ball.n1 = "";
+      }
+    },
   },
 
   // 創建完成時
   created() {
     this.nowTimes();
+
+    axios.post(appApi + "/thisIssue").then((res) => {
+      this.issue = res.data[0].issue;
+    });
+    axios.post(appApi + "/status").then((res) => {
+      this.ball = res.data;
+    });
   },
   // 掛載完成時
   mounted() {
@@ -178,13 +197,23 @@ export default {
 
     //取得會員資料
     axios.post(appApi + "/getuser", { params }).then((res) => {
-      console.log(res.data);
       this.nickname = res.data[0].nickname;
       this.balance = res.data[0].balance;
     });
-    axios.post(appApi + "/status" ).then((res) => {
-      this.ball =res.data
-      console.log(this.ball);
+
+    //取得已開獎紀錄
+    socket.on("receive-openBall", () => {
+      console.log("11111");
+      axios.post(appApi + "/status").then((res) => {
+        this.ball = res.data;
+      });
+    });
+
+    //取得本期期數
+    socket.on("receive-issue", () => {
+      axios.post(appApi + "/thisIssue").then((res) => {
+        this.issue = res.data[0].issue;
+      });
     });
   },
 };
@@ -193,7 +222,7 @@ export default {
 .record_table {
   width: 100%;
 }
-.col .el-input{
+.col .el-input {
   display: contents;
 }
 </style>
