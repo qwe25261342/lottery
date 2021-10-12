@@ -52,7 +52,6 @@
 import axios from "axios";
 import url from "../router/url"
 const appApi = url.api
-//var root = 'http://localhost:3050/login'
 
 export default {
   data() {

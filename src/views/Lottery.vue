@@ -21,7 +21,7 @@
         <div class="row mb-3">
           <div class="col">
             <el-input
-              v-model="ball.n1"
+              v-model="ball[0].value"
               v-on:input="max"
               type="number"
               class="form-control"
@@ -29,7 +29,7 @@
           </div>
           <div class="col">
             <el-input
-              v-model="ball.n2"
+              v-model="ball[1].value"
               v-on:input="max"
               type="number"
               class="form-control"
@@ -37,7 +37,7 @@
           </div>
           <div class="col">
             <el-input
-              v-model="ball.n3"
+              v-model="ball[2].value"
               v-on:input="max"
               type="number"
               class="form-control"
@@ -45,7 +45,7 @@
           </div>
           <div class="col">
             <el-input
-              v-model="ball.n4"
+              v-model="ball[3].value"
               v-on:input="max"
               type="number"
               class="form-control"
@@ -53,7 +53,7 @@
           </div>
           <div class="col">
             <el-input
-              v-model="ball.n5"
+              v-model="ball[4].value"
               v-on:input="max"
               type="number"
               class="form-control"
@@ -67,25 +67,33 @@
 
       <div class="lottery_record">
         <h2>開獎紀錄</h2>
-
-        <table class="record_table" border="2">
-          <tr>
-            <th>期</th>
-            <th>第1球</th>
-            <th>第2球</th>
-            <th>第3球</th>
-            <th>第4球</th>
-            <th>第5球</th>
-          </tr>
-          <tr v-for="item in ball" :key="item.issue">
-            <td>{{ item.issue }}</td>
-            <td>{{ item.n1 }}</td>
-            <td>{{ item.n2 }}</td>
-            <td>{{ item.n3 }}</td>
-            <td>{{ item.n4 }}</td>
-            <td>{{ item.n5 }}</td>
-          </tr>
-        </table>
+        <div
+          style="
+            overflow-y: auto;
+            overflow-x: auto;
+            width: auto;
+            height: 500px;
+          "
+        >
+          <table class="table table-striped" border="2">
+            <tr>
+              <th>期</th>
+              <th>第1球</th>
+              <th>第2球</th>
+              <th>第3球</th>
+              <th>第4球</th>
+              <th>第5球</th>
+            </tr>
+            <tr v-for="item in ball" :key="item.issue">
+              <td>{{ item.issue }}</td>
+              <td>{{ item.n1 }}</td>
+              <td>{{ item.n2 }}</td>
+              <td>{{ item.n3 }}</td>
+              <td>{{ item.n4 }}</td>
+              <td>{{ item.n5 }}</td>
+            </tr>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -103,7 +111,13 @@ export default {
     return {
       nowDay: "",
       nowTime: "",
-      ball: [],
+      ball: [
+        { value: "" },
+        { value: "" },
+        { value: "" },
+        { value: "" },
+        { value: "" },
+      ],
       nickname: "",
       balance: "",
       issue: "",
@@ -111,21 +125,49 @@ export default {
   },
   methods: {
     send() {
-      const { n1, n2, n3, n4, n5 } = this.ball;
+      const n1 = this.ball[0].value;
+      const n2 = this.ball[1].value;
+      const n3 = this.ball[2].value;
+      const n4 = this.ball[3].value;
+      const n5 = this.ball[4].value;
+      const newArr = [n1, n2, n3, n4, n5];
       const token = localStorage.getItem("token");
-      const params = { n1, n2, n3, n4, n5, token };
-      if (params == "") {
+      const params = { n1, n2, n3, n4, n5 };
+      //輸入值重複
+      const repeat = newArr.filter((element, index, arr) => {
+        return arr.indexOf(element) !== index;
+      });
+      if (repeat.length > 0) {
+        alert("輸入數字重複");
         return;
       }
-      axios.post(appApi + "/setball", { params }).then((res) => {
+      //輸入值為空
+      if (params == "") {
+        alert("請輸入購買數字");
+        return;
+      }
+      axios.post(appApi + "/token/setball", { params, token }).then((res) => {
+        console.log(res.data);
+        if (res.data.success == false) {
+          this.$router.push({ name: "Login" });
+          return;
+        }
         if (res.data.closing) {
           alert("關盤中");
+          return;
+        }
+        if (res.data.number == false) {
+          alert("請輸入數字");
+          return;
+        }
+        if (res.data.money == false) {
+          alert("請儲值");
+          return;
         } else {
           alert("購買成功");
         }
       });
     },
-
     // 得到當下時間
     timeFormate(timeStamp) {
       let newdate = new Date(timeStamp);
@@ -160,19 +202,18 @@ export default {
     },
     //限制輸入框最大與最小值
     max() {
-      let value = this.ball.n1;
+      for (let i = 0; i < 5; i++) {
+        let value = this.ball[i].value;
 
-      if (value.length > 2) {
-        this.ball.n1 = value.slice(0, 2);
-        console.log(value);
-      }
-      if (value < 0) {
-        console.log(value);
-        this.ball.n1 = 0;
-      }
-      if (value > 30) {
-        alert("最大30");
-        this.ball.n1 = "";
+        if (value < 0) {
+          console.log(value);
+          alert("最小1");
+          this.ball[i].value = "";
+        }
+        if (value > 30) {
+          alert("最大30");
+          this.ball[i].value = "";
+        }
       }
     },
   },
@@ -180,10 +221,11 @@ export default {
   // 創建完成時
   created() {
     this.nowTimes();
-
+    //更新本期期數
     axios.post(appApi + "/thisIssue").then((res) => {
       this.issue = res.data[0].issue;
     });
+    //更新已開獎紀錄
     axios.post(appApi + "/status").then((res) => {
       this.ball = res.data;
     });
@@ -191,19 +233,22 @@ export default {
   // 掛載完成時
   mounted() {
     this.nowTimes();
-    let params = {
-      token: localStorage.getItem("token"),
-    };
+    const token = localStorage.getItem("token");
 
     //取得會員資料
-    axios.post(appApi + "/getuser", { params }).then((res) => {
+    axios.post(appApi + "/token/getuser", { token }).then((res) => {
+      console.log(res.data);
+      if (res.data.success == false) {
+        this.$router.push({ name: "Login" });
+        alert("請登入");
+        return;
+      }
       this.nickname = res.data[0].nickname;
       this.balance = res.data[0].balance;
     });
 
     //取得已開獎紀錄
     socket.on("receive-openBall", () => {
-      console.log("11111");
       axios.post(appApi + "/status").then((res) => {
         this.ball = res.data;
       });
@@ -224,5 +269,8 @@ export default {
 }
 .col .el-input {
   display: contents;
+}
+tr:nth-child(odd) {
+  background-color: #ccc;
 }
 </style>

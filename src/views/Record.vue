@@ -99,15 +99,22 @@ export default {
   mounted() {
     this.nowTimes();
 
-    const params = { token: localStorage.getItem("token") };
+    const  token =  localStorage.getItem("token");
     //取得歷史紀錄
-    axios.post(appApi + "/history", { params }).then((res) => {
+    axios.post(appApi + "/token/history", { token }).then((res) => {
+      if (res.data.success == false) {
+        this.$router.push({ name: "Login" });
+        alert("請登入");
+        return
+      }
       this.record = res.data;
-      console.log(this.record);
     });
     //取得會員資料
-    axios.post(appApi + "/getuser", { params }).then((res) => {
-      console.log(res.data);
+    axios.post(appApi + "/token/getuser", { token }).then((res) => {
+      if (res.data.success == false) {
+        this.$router.push({ name: "Login" });
+        return
+      }
       this.nickname = res.data[0].nickname;
       this.balance = res.data[0].balance;
     });
