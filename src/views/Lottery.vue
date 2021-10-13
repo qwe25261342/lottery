@@ -32,6 +32,7 @@
               v-model="ball[1].value"
               v-on:input="max"
               type="number"
+              
               class="form-control"
             />
           </div>
@@ -64,7 +65,6 @@
           </button>
         </div>
       </el-form>
-
       <div class="lottery_record">
         <h2>開獎紀錄</h2>
         <div
@@ -97,10 +97,9 @@
 <script>
 import axios from "axios";
 import url from "../router/url";
-const appApi = url.api;
 import io from "socket.io-client";
+const appApi = url.api;
 var socket = io(appApi);
-
 export default {
   data() {
     return {
@@ -138,17 +137,12 @@ export default {
           this.$router.push({ name: "Login" });
           return;
         }
-        //輸入值重複
-        if (res.data.repeat) {
-          alert("輸入數字重複");
+        if (res.data.number == false || res.data.repeat) {
+          alert("購買失敗");
           return;
         }
         if (res.data.closing) {
           alert("關盤中");
-          return;
-        }
-        if (res.data.number == false) {
-          alert("請輸入數字");
           return;
         }
         if (res.data.money == false) {
@@ -194,6 +188,7 @@ export default {
     max() {
       for (let i = 0; i < 5; i++) {
         let value = this.ball[i].value;
+        
         if (value < 0) {
           console.log(value);
           alert("最小1");
@@ -210,11 +205,11 @@ export default {
   // 創建完成時
   created() {
     this.nowTimes();
-    //更新本期期數
+    //取得本期期數
     axios.post(appApi + "/thisIssue").then((res) => {
       this.issue = res.data[0].issue;
     });
-    //更新已開獎紀錄
+    //取得已開獎紀錄
     axios.post(appApi + "/status").then((res) => {
       this.ball = res.data;
     });
@@ -236,14 +231,14 @@ export default {
       this.balance = res.data[0].balance;
     });
 
-    //取得已開獎紀錄
+    //更新已開獎紀錄
     socket.on("receive-openBall", () => {
       axios.post(appApi + "/status").then((res) => {
         this.ball = res.data;
       });
     });
 
-    //取得本期期數
+    //更新本期期數
     socket.on("receive-issue", () => {
       axios.post(appApi + "/thisIssue").then((res) => {
         this.issue = res.data[0].issue;
