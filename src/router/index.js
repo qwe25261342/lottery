@@ -15,7 +15,6 @@ VueRouter.prototype.push = function push(location) {
 const router = new VueRouter({
   mode: 'history',
   routes: [
-    
     {
       path: '/login',
       name: 'Login',
@@ -38,18 +37,5 @@ const router = new VueRouter({
     },
   ]
 })
-
-// router.beforeEach((to, from, next) => {
-//   if (to.meta.require) {
-//     if (localStorage.getItem("token") == null) {
-//       alert("請登入");
-//       next({
-//         path: '/login',
-//         query: {redirect: to.fullPath}  
-//       })
-//     }
-//   }
-//   next()
-// })
 
 export default router
