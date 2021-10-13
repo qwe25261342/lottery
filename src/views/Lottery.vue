@@ -68,12 +68,7 @@
       <div class="lottery_record">
         <h2>開獎紀錄</h2>
         <div
-          style="
-            overflow-y: auto;
-            overflow-x: auto;
-            width: auto;
-            height: 500px;
-          "
+          style="overflow-y: auto; overflow-x: auto; width: auto; height: 500px"
         >
           <table class="table table-striped" border="2">
             <tr>
@@ -130,17 +125,8 @@ export default {
       const n3 = this.ball[2].value;
       const n4 = this.ball[3].value;
       const n5 = this.ball[4].value;
-      const newArr = [n1, n2, n3, n4, n5];
       const token = localStorage.getItem("token");
       const params = { n1, n2, n3, n4, n5 };
-      //輸入值重複
-      const repeat = newArr.filter((element, index, arr) => {
-        return arr.indexOf(element) !== index;
-      });
-      if (repeat.length > 0) {
-        alert("輸入數字重複");
-        return;
-      }
       //輸入值為空
       if (params == "") {
         alert("請輸入購買數字");
@@ -150,6 +136,11 @@ export default {
         console.log(res.data);
         if (res.data.success == false) {
           this.$router.push({ name: "Login" });
+          return;
+        }
+        //輸入值重複
+        if (res.data.repeat) {
+          alert("輸入數字重複");
           return;
         }
         if (res.data.closing) {
@@ -171,7 +162,6 @@ export default {
     // 得到當下時間
     timeFormate(timeStamp) {
       let newdate = new Date(timeStamp);
-
       let year = newdate.getFullYear();
       let month =
         newdate.getMonth() + 1 < 10
@@ -204,7 +194,6 @@ export default {
     max() {
       for (let i = 0; i < 5; i++) {
         let value = this.ball[i].value;
-
         if (value < 0) {
           console.log(value);
           alert("最小1");
