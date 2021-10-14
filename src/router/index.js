@@ -4,6 +4,7 @@ import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import Lottery from '../views/Lottery.vue'
 import Record from '../views/Record.vue'
+import Singout from '../views/Singout.vue'
 
 Vue.use(VueRouter)
 
@@ -34,6 +35,11 @@ const router = new VueRouter({
       path: '/record',
       name: 'Record',
       component: Record
+    },
+    {
+      path: '/singout',
+      name: 'Singout',
+      component: Singout
     },
   ]
 })
