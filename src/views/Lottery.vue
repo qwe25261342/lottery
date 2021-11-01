@@ -6,7 +6,6 @@
           <li><a href="/">註冊</a></li>
           <li><a href="/lottery">彩票</a></li>
           <li><a href="/record">購買紀錄</a></li>
-          <li><a href="/singout" @click="signout">登出</a></li>
           <div class="userbox">
             <li>會員:{{ nickname }}</li>
             <li>剩餘點數:{{ balance }}</li>
@@ -33,6 +32,7 @@
               v-model="ball[1].value"
               v-on:input="max"
               type="number"
+              
               class="form-control"
             />
           </div>
@@ -60,15 +60,7 @@
               class="form-control"
             />
           </div>
-          <button
-            v-if="closeing"
-            type="submit"
-            class="btn btn-primary"
-            disabled
-          >
-            關盤中
-          </button>
-          <button v-else type="submit" class="btn btn-primary" @click="send">
+          <button type="submit" class="btn btn-primary" @click="send">
             購買
           </button>
         </div>
@@ -123,7 +115,6 @@ export default {
       nickname: "",
       balance: "",
       issue: "",
-      closeing: false,
     };
   },
   methods: {
@@ -135,13 +126,18 @@ export default {
       const n5 = this.ball[4].value;
       const token = localStorage.getItem("token");
       const params = { n1, n2, n3, n4, n5 };
+      //輸入值為空
+      if (params == "") {
+        alert("請輸入購買數字");
+        return;
+      }
       axios.post(appApi + "/token/setball", { params, token }).then((res) => {
         console.log(res.data);
         if (res.data.success == false) {
           this.$router.push({ name: "Login" });
           return;
         }
-        if (res.data.number == false || res.data.repeat || res.data.over) {
+        if (res.data.number == false || res.data.repeat) {
           alert("購買失敗");
           return;
         }
@@ -161,18 +157,24 @@ export default {
     timeFormate(timeStamp) {
       let newdate = new Date(timeStamp);
       let year = newdate.getFullYear();
-      let month = newdate.getMonth() + 1 < 10 ? "0" + (newdate.getMonth() + 1) : newdate.getMonth() + 1;
-      let date = newdate.getDate() < 10 ? "0" + newdate.getDate() : newdate.getDate();
-      let hh = newdate.getHours() < 10 ? "0" + newdate.getHours() : newdate.getHours();
-      let mm = newdate.getMinutes() < 10 ? "0" + newdate.getMinutes() : newdate.getMinutes();
-      let ss = newdate.getSeconds() < 10 ? "0" + newdate.getSeconds() : newdate.getSeconds();
+      let month =
+        newdate.getMonth() + 1 < 10
+          ? "0" + (newdate.getMonth() + 1)
+          : newdate.getMonth() + 1;
+      let date =
+        newdate.getDate() < 10 ? "0" + newdate.getDate() : newdate.getDate();
+      let hh =
+        newdate.getHours() < 10 ? "0" + newdate.getHours() : newdate.getHours();
+      let mm =
+        newdate.getMinutes() < 10
+          ? "0" + newdate.getMinutes()
+          : newdate.getMinutes();
+      let ss =
+        newdate.getSeconds() < 10
+          ? "0" + newdate.getSeconds()
+          : newdate.getSeconds();
       this.nowTime = hh + ":" + mm + ":" + ss;
       this.nowDay = year + "年" + month + "月" + date + "日";
-      if (mm == 9 || mm == 19 || mm == 29 || mm == 39 || mm == 49 || mm == 59) {
-        this.closeing = true;
-      }else{
-        this.closeing = false;
-      }
     },
     // 定時器函數
     nowTimes() {
@@ -186,7 +188,7 @@ export default {
     max() {
       for (let i = 0; i < 5; i++) {
         let value = this.ball[i].value;
-
+        
         if (value < 0) {
           console.log(value);
           alert("最小1");
@@ -197,14 +199,6 @@ export default {
           this.ball[i].value = "";
         }
       }
-    },
-    //登出
-    signout() {
-      const params = {
-        token: localStorage.getItem("token"),
-      };
-      localStorage.clear();
-      axios.post(appApi + "/singout", { params });
     },
   },
 
